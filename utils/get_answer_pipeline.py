@@ -6,7 +6,13 @@ from openai import OpenAI
 import docker
 import re
 from collections import Counter
+import json
 
+with open("api.json", "r") as f:
+    config = json.load(f)
+# Load API key from an environment variable
+api_key = config["OPENAI_API_KEY"]
+#%%
 # Function to generate reasoning (CoT) and corresponding Python code using OpenAI API
 
 async def generate_reasoning_and_code(question: str) -> tuple:
@@ -14,7 +20,7 @@ async def generate_reasoning_and_code(question: str) -> tuple:
     Generate reasoning (CoT) and corresponding Python code for the question.
     """
     client = OpenAI(
-        api_key="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"
+        api_key=api_key
     )
 
     # Chat-based completion
@@ -104,7 +110,7 @@ def debug_code(code: str, error_message: str) -> str:
     Use LLM to debug the given Python code based on the error message.
     """
     client = OpenAI(
-        api_key="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", 
+        api_key=api_key, 
     )
     debug_prompt = f"The following code:\n{code}\nproduced an error:\n{error_message}\nPlease correct it."
     chat_completion = client.chat.completions.create(
