@@ -1,0 +1,7 @@
+openai
+asyncio
+aiohttp
+docker
+spacy
+transformers
+pytorch
