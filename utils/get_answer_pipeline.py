@@ -103,6 +103,7 @@ def parse_output(output: str) -> str:
     """
     match = re.search(r'Final result: (\d+)', output)
     return match.group(1) if match else "Error: Could not parse the result."
+    # return output
 
 # Function to use LLM for code debugging
 def debug_code(code: str, error_message: str) -> str:
