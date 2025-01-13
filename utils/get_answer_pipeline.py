@@ -11,7 +11,7 @@ import json
 with open("api.json", "r") as f:
     config = json.load(f)
 # Load API key from an environment variable
-api_key = config["OPENAI_API_KEY"]
+api_key = config["OPENAI_API_KEY"] 
 #%%
 # Function to generate reasoning (CoT) and corresponding Python code using OpenAI API
 
