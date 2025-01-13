@@ -1,0 +1,56 @@
+# Ignore large files by type
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.iso
+*.zip
+*.tar
+*.gz
+*.rar
+*.7z
+*.dmg
+*.exe
+
+# Ignore large data files
+*.csv
+*.tsv
+*.json
+*.xml
+*.h5
+*.pkl
+*.npy
+*.npz
+*.pt
+*.ckpt
+*.onnx
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Ignore virtual environments
+venv/
+env/
+conda-env/
+
+# Ignore compiled Python files
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+
+# Ignore temporary and cache files
+*.tmp
+*.log
+*.cache
+*.bak
+*.swp
+*.swo
+*.DS_Store
+*.thumbs.db
+*.idea/
+*.vscode/
+*.vs/
+node_modules/
+dist/
+build/
