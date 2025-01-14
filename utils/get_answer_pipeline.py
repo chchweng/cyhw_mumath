@@ -1,12 +1,15 @@
 #%%
 import os
 import asyncio
-from concurrent.futures import ThreadPoolExecutor
+# from concurrent.futures import ThreadPoolExecutor
 from openai import OpenAI 
 import docker
 import re
 from collections import Counter
 import json
+import uuid
+import subprocess
+import shutil
 
 with open("api.json", "r") as f:
     config = json.load(f)
@@ -67,31 +70,57 @@ async def generate_reasoning_and_code(question: str) -> tuple:
 # Function to execute Python code in a Docker container
 async def execute_and_debug_code(code: str) -> str:
     """
-    Execute Python code in a Docker container. If errors occur, debug and retry.
+    Execute Python code in a Docker container using a local folder for the script.
+    If an error occurs, debug and retry.
     """
     client = docker.from_env()
 
     try:
-        # Format the command to avoid multi-line issues
-        command = f'python -c "{code.replace(chr(10), " ")}"'
+        # Generate a unique filename for the Python script
+        script_name = script_name = f"/tmp/script_{uuid.uuid4().hex}.py"
+
+        # Save the code to a temporary file
+        with open(script_name, "w") as f:
+            f.write(code)
+
+        # Start the Docker container
         container = client.containers.run(
             "python:3.9",
-            command,
-            detach=False,
-            stderr=True,
-            stdout=True,
-            remove=True
+            detach=True,
+            tty=True
         )
-        result = container.decode('utf-8').strip()
 
-        # Parse the final result using the specified key
-        if "Final result:" in result:
-            return parse_output(result)
-        else:
-            return "Error: No final result format found."
+        container_id = container.id
+
+        # Copy the script into the container using `docker cp`
+        subprocess.run(
+            ["docker", "cp", script_name, f"{container_id}:/tmp/script.py"],
+            stdout=subprocess.DEVNULL,  # Suppress stdout
+            stderr=subprocess.DEVNULL,  # Suppress stderr
+            check=True
+        )
+
+        # Execute the script inside the container
+        exec_result = container.exec_run("python /tmp/script.py", stderr=True, stdout=True)
+        result = exec_result.output.decode("utf-8").strip()
+
+        # Check if the result contains an error (stderr)
+        if "Traceback" in result or "Error" in result or "SyntaxError" in result:
+            raise RuntimeError(result)  # Trigger the `except` block to handle debugging
+
+        # Clean up
+        container.stop()
+        container.remove()
+        os.remove(script_name)
+
+        # Parse the output
+        return parse_output(result) if "Final result:" in result else "Error: No final result format found."
+
     except Exception as e:
+        print(f"Error detected: {e}")
         debugged_code = debug_code(code, str(e))
-        return await execute_and_debug_code(debugged_code)
+        # print(f"Debugged Code: {debugged_code}")
+        return await execute_and_debug_code(debugged_code)  # Retry with debugged code
     finally:
         client.close()
 
@@ -113,14 +142,34 @@ def debug_code(code: str, error_message: str) -> str:
     client = OpenAI(
         api_key=api_key, 
     )
-    debug_prompt = f"The following code:\n{code}\nproduced an error:\n{error_message}\nPlease correct it."
-    chat_completion = client.chat.completions.create(
-        engine="gpt-4o-mini",
-        prompt=debug_prompt,
-        max_tokens=300,
-        temperature=0.5
+    debug_prompt = (
+        f"You are a Python expert. The following code has a bug:\n"
+        f"---\n{code}\n---\n"
+        f"The error message is:\n---\n{error_message}\n---\n"
+        "Please correct the code and format your response as Python code only, inside a code block using ```python."
     )
-    debugged_code = chat_completion.choices[0].text.strip()
+
+    # OpenAI ChatCompletion API call
+    chat_completion = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are an expert Python programmer and debugging assistant."},
+            {"role": "user", "content": debug_prompt},
+        ],
+        max_tokens=1000,
+        temperature=0.2,
+    )
+
+    # Extract content from the response
+    response_text = chat_completion.choices[0].message.content
+
+    # Post-process to extract the Python code inside ```python ... ```
+    match = re.search(r"```python\s*(.*?)```", response_text, re.DOTALL)
+    if match:
+        debugged_code = match.group(1).strip()  # Get the Python code inside the code block
+    else:
+        debugged_code = "Error: No valid Python code block found."
+
     return debugged_code
 
 # Function to perform majority voting
@@ -170,3 +219,9 @@ if __name__ == "__main__":
     print(f"Final Answer: {final_result}")
 
 #%%
+'''
+code = '# Initialize the candidate number\nx = 0\n\n# Loop until we find the correct number\nwhile True:\n    # Check the conditions\n    if (x % 4 == 1) and (x % 3 == 1) and (x % 5 == 2):\n        break  # Found the number\n    x += 1  # Increment the candidate number\n\n# Output the final result\nprint(f"Final result: {x}")'
+
+error test:
+code = '# Initialize the candidate number\nx = 0\n\n# Loop until we find the correct number\nwhile True:\n    # Check the conditions\n    if (x % 4 = 1) and (x % 3 == 1) and (x % 5 == 2):\n        break  # Found the number\n    x += 1  # Increment the candidate number\n\n# Output the final result\nprint(f"Final result: {x}")'
+'''
