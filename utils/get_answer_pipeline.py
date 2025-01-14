@@ -1,7 +1,6 @@
 #%%
 import os
 import asyncio
-# from concurrent.futures import ThreadPoolExecutor
 from openai import OpenAI 
 import docker
 import re
@@ -9,15 +8,14 @@ from collections import Counter
 import json
 import uuid
 import subprocess
-import shutil
 
 with open("api.json", "r") as f:
     config = json.load(f)
 # Load API key from an environment variable
 api_key = config["OPENAI_API_KEY"] 
 #%%
-# Function to generate reasoning (CoT) and corresponding Python code using OpenAI API
 
+# Function to generate reasoning (CoT) and corresponding Python code using OpenAI API
 async def generate_reasoning_and_code(question: str) -> tuple:
     """
     Generate reasoning (CoT) and corresponding Python code for the question.
@@ -215,7 +213,8 @@ async def get_answer(question: str, majority_num: int = 3) -> str:
 # Example usage
 if __name__ == "__main__":
     question = "What is the smallest whole number that has a remainder of 1 when divided by 4, a remainder of 1 when divided by 3, and a remainder of 2 when divided by 5?"
-    final_result = asyncio.run(get_answer(question, majority_num=2))
+    print(f'Question:\n {question}')
+    final_result = asyncio.run(get_answer(question, majority_num=1))
     print(f"Final Answer: {final_result}")
 
 #%%

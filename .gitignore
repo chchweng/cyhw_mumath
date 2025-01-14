@@ -1,3 +1,6 @@
+# Ignore API keys file
+api.json
+
 # Ignore large files by type
 *.mp4
 *.mov
@@ -15,7 +18,7 @@
 # Ignore large data files
 *.csv
 *.tsv
-*.json
+# *.json
 *.xml
 *.h5
 *.pkl
