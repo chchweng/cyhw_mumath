@@ -46,8 +46,8 @@ python run.py
 #### **Script Overview**
 The `run.py` script demonstrates the following:
 
-1. **Answering Example Questions**: Generates answers for input questions using `get_answer_pipeline` and saves the output as a JSON file.
-2. **Generating BF-Trans Augmented Questions**: Creates BF-Trans augmented questions based on the answered questions.
+1. **Answering Example Questions**: Generates answers for input questions using `get_answer_pipeline` and saves the output as a JSON file `/examples/questions_w_ans.json`.
+2. **Generating BF-Trans Augmented Questions**: Creates BF-Trans augmented questions based on the answered questions `/examples/bf_trans_qa.json`.
 
 #### **Expected Output**
 The script generates two files in the `examples` directory:
