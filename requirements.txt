@@ -2,4 +2,3 @@ openai
 asyncio
 aiohttp
 docker
-spacy
