@@ -1,5 +1,5 @@
 '''
-Run this script to demo the result of get_answer_pipline and bf_trans_augment functions
+Run this script to demonstrate the results from the get_answer_pipeline and bf_trans_augment functions.
 '''
 import asyncio
 from utils.bf_trans_augment import save_augmented_questions
