@@ -14,6 +14,18 @@ with open("api.json", "r") as f:
 # Load API key from an environment variable
 api_key = config["OPENAI_API_KEY"] 
 #%%
+import asyncio
+import json
+
+def load_questions_from_json(input_file: str) -> list:
+    with open(input_file, 'r') as f:
+        return json.load(f)
+
+def save_answers_to_json(output_file: str, data: list):
+    os.makedirs(os.path.dirname(output_file), exist_ok=True)
+    with open(output_file, 'w') as f:
+        json.dump(data, f, indent=4)
+
 
 # Function to generate reasoning (CoT) and corresponding Python code using OpenAI API
 async def generate_reasoning_and_code(question: str) -> tuple:
@@ -208,6 +220,27 @@ async def get_answer(question: str, majority_num: int = 3) -> str:
     final_answer = majority_vote(execution_results)
 
     return final_answer
+
+async def process_questions(input_file: str, output_file: str, majority_num: int = 3):
+    """
+    Process questions from a JSON file, generate answers, and save to a new JSON file.
+
+    Args:
+        input_file (str): Path to the input JSON file containing questions.
+        output_file (str): Path to the output JSON file to save questions with answers.
+        majority_num (int): Number of samples for majority voting.
+    """
+    questions = load_questions_from_json(input_file)
+    answered_questions = []
+
+    for entry in questions:
+        question = entry["question"]
+        print(f'Question:\n {question}')
+        answer = await get_answer(question, majority_num)
+        print(f"Final Answer: {answer}")
+        answered_questions.append({"question": question, "answer": answer})
+
+    save_answers_to_json(output_file, answered_questions)
 
 #%%
 # Example usage
