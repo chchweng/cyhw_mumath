@@ -118,6 +118,5 @@ Jim spends 2 hours watching TV and then decides to go to bed and reads for half 
 
 These results suggest promising avenues for expanding the types of questions supported by the BF-Trans augmentation.
 BF-trans works well on this question, However still need some improvement. 
----
 
 
